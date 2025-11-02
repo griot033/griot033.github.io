@@ -1,14 +1,483 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Trialverse – Smart RFP Wizard</title>
-    <meta name="description" content="Smart RFP generation for your next clinical trial" />
-    <script type="module" crossorigin src="/assets/index-CDOggFYX.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-B9yDN4_s.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Trialverse – Smart RFP</title>
+<style>
+  :root{
+    --bg1:#0b1220; --bg2:#0e1a2b; --card:#0f1827; --line:#25344a;
+    --txt:#e8eef9; --muted:#9fb0c8; --brand:#10a6e7; --brand2:#1e6df0;
+    --radius:14px;
+  }
+  html,body{height:100%;margin:0;background:
+     radial-gradient(1000px 800px at 90% -10%, #163055 0%, transparent 60%),
+     radial-gradient(900px 900px at -10% 110%, #281b5a 0%, transparent 55%),
+     linear-gradient(180deg,var(--bg2),var(--bg1));
+     color:var(--txt); font:15px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  .container{max-width:1060px;margin:56px auto 80px;padding:0 24px}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.4px}
+  .logo-badge{width:28px;height:28px;border-radius:8px;display:inline-block;
+              background:linear-gradient(135deg,#7c3aed,#06b6d4)}
+  .steps{display:flex;gap:10px;align-items:center}
+  .dot{width:44px;height:6px;border-radius:99px;background:#233145;opacity:.7}
+  .dot.on{background:linear-gradient(90deg,#2ed0ff,#2f6bff);opacity:1}
+  .save{background:#16243d;border:1px solid var(--line);padding:8px 12px;border-radius:10px;color:var(--txt)}
+  h1{font-size:30px;margin:10px 0 22px;font-weight:800}
+  h2{margin:0 0 10px;font-size:18px;color:#cfe0ff}
+  .card{background:rgba(16,24,39,.6);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 28px}
+  .full{grid-column:1/-1}
+  label{display:block;margin:2px 0 6px;color:#cfe0ff;font-weight:600}
+  .input, select, textarea{
+    width:100%;background:#0f1827;border:1px solid var(--line);color:var(--txt);
+    border-radius:12px;padding:12px 14px;outline:none;transition:.15s border-color
+  }
+  .input:focus, select:focus, textarea:focus{border-color:#3b82f6}
+  .hint{font-size:13px;color:var(--muted);margin-top:6px}
+  .btn{appearance:none;border:0;border-radius:12px;padding:12px 18px;font-weight:800;cursor:pointer}
+  .btn-primary{background:linear-gradient(90deg,#10a6e7,#1e6df0);color:#fff;
+               box-shadow:0 10px 28px rgba(46,144,255,.28)}
+  .btn-ghost{background:#13233b;color:#d9e6ff;border:1px solid var(--line)}
+  .btn-outline{background:transparent;color:#d9e6ff;border:1px solid #3b82f6}
+  .actions{display:flex;justify-content:space-between;align-items:center;margin-top:24px}
+  a.back{color:var(--muted);text-decoration:none}
+  /* landing */
+  .hero{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;text-align:center}
+  .hero h1{font-size:56px;line-height:1.1;margin:18px 0 12px}
+  .hero p{max-width:760px;color:#b9c9e3}
+  .hero .cta{margin-top:26px}
+  /* multi select (countries) */
+  .tags{display:flex;flex-wrap:wrap;gap:8px;padding:8px;background:#0f1827;border:1px solid var(--line);border-radius:12px}
+  .tag{background:#173258;color:#d9e6ff;padding:6px 10px;border-radius:999px;font-size:13px}
+  .tags input{flex:1;min-width:160px;border:0;background:transparent;color:var(--txt);padding:4px 6px}
+  /* step 2 cards */
+  .item{display:flex;align-items:center;gap:14px;padding:18px;border-radius:16px;background:rgba(20,33,54,.7);
+        border:1px solid var(--line);cursor:pointer}
+  .item:hover{border-color:#315a9a}
+  .ic{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#0ea5e9,#6366f1)}
+  /* scope tiles */
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .tile{padding:18px;border-radius:16px;background:rgba(20,33,54,.7);border:1px solid var(--line);cursor:pointer}
+  .tile.sel{outline:2px solid #3aa8ff; background:linear-gradient(180deg,rgba(36,66,110,.55),rgba(18,29,49,.7))}
+  .muted{color:var(--muted)}
+  /* step5 collapsible */
+  .sec{border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-bottom:14px}
+  .sec.hi{border-color:#2f6bff;box-shadow:0 0 0 1px #2f6bff33 inset}
+  .sec.dim{opacity:.55}
+  .sec-h{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#112039;cursor:pointer}
+  .sec-h .ttl{display:flex;align-items:center;gap:10px;font-weight:700}
+  .chev{transform:rotate(-90deg);transition:.18s}
+  .open .chev{transform:rotate(0)}
+  table{width:100%;border-collapse:collapse}
+  th,td{border-top:1px solid var(--line);padding:12px 14px;text-align:left}
+  td.owner select{background:#102039;color:#dfe9ff;border:1px solid #345788;border-radius:9px;padding:8px}
+  /* step6 */
+  .center{max-width:680px;margin:0 auto;text-align:center}
+  .big{font-size:44px;font-weight:800;margin:8px 0 10px}
+  .sub{color:#b7c9e6;margin-bottom:22px}
+  .btns{display:flex;gap:14px;justify-content:center;margin-top:18px}
+  /* utility */
+  @media (max-width:980px){
+    .grid{grid-template-columns:1fr}
+    .tiles{grid-template-columns:1fr}
+  }
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button{ -webkit-appearance:none;margin:0}
+  input[type=number]{ -moz-appearance:textfield }
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- top -->
+  <div class="topbar">
+    <div class="logo"><span class="logo-badge"></span><span>TRIALVERSE</span></div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <div class="steps">
+        <span class="dot on" data-stepdot="0"></span>
+        <span class="dot" data-stepdot="1"></span>
+        <span class="dot" data-stepdot="2"></span>
+        <span class="dot" data-stepdot="3"></span>
+        <span class="dot" data-stepdot="4"></span>
+        <span class="dot" data-stepdot="5"></span>
+      </div>
+      <button class="save" type="button" onclick="saveDraft()">Save Draft</button>
+    </div>
+  </div>
+
+  <!-- STEP 0: Landing -->
+  <section id="step0" class="hero">
+    <div class="logo"><span class="logo-badge"></span><span>TRIALVERSE</span></div>
+    <h1>Smart RFP generation<br/>for your next clinical trial</h1>
+    <p>Streamline study inputs, define responsibilities, set your RFP timeline, and export a polished PDF/Word.</p>
+    <div class="cta"><button class="btn btn-primary" onclick="go(1)">Generate RFP Now</button></div>
+  </section>
+
+  <!-- STEP 1: Study Overview -->
+  <section id="step1" class="hidden">
+    <h1>Step 1 of 5 — Study Overview</h1>
+    <form class="grid" id="form1">
+      <div>
+        <label>Study Title</label>
+        <input class="input" name="title" placeholder="E.g. A Phase II Randomized, Double-blind Study of XYZ123">
+      </div>
+      <div>
+        <label>Indication</label>
+        <input class="input" name="indication" placeholder="">
+      </div>
+      <div>
+        <label>Phase</label>
+        <select name="phase" class="input">
+          <option value=""></option>
+          <option>Phase I</option><option>Phase Ia</option><option>Phase Ib</option>
+          <option>Phase I/II</option><option>Phase II</option><option>Phase II/III</option>
+          <option>Phase III</option><option>Phase IV</option>
+          <option>Pilot Study</option><option>Pivotal Study</option>
+        </select>
+      </div>
+      <div>
+        <label>Product Type</label>
+        <input class="input" name="productType" placeholder="E.g. Biologic or Device – Class III">
+      </div>
+
+      <div class="full">
+        <label>Study Countries</label>
+        <div class="tags" id="countryWrap"><input id="countryInput" list="countryList" placeholder="Type a country and press Enter"></div>
+        <datalist id="countryList"></datalist>
+        <div class="hint">Multiple countries supported.</div>
+      </div>
+
+      <div>
+        <label>Number of Subjects</label>
+        <input class="input" type="number" inputmode="numeric" name="subjects" placeholder="">
+      </div>
+      <div>
+        <label>Number of Sites</label>
+        <input class="input" type="number" inputmode="numeric" name="sites" placeholder="">
+      </div>
+
+      <div class="full">
+        <label>Background Information</label>
+        <textarea class="input" rows="4" name="background" placeholder="Optional context for study nuances"></textarea>
+      </div>
+
+      <div class="actions full">
+        <a class="back" href="#" onclick="go(0)">&lsaquo; Back</a>
+        <button class="btn btn-primary" type="button" onclick="go(2)">Next: Study Design & Objectives &rsaquo;</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- STEP 2: Study Design & Objectives (cards -> modal input) -->
+  <section id="step2" class="hidden">
+    <h1>Step 2 of 5 — Study Design & Objectives</h1>
+    <div class="grid full">
+      <div class="item" onclick="openNote('Study Design Summary')"><span class="ic"></span><div><h2>Study Design Summary</h2><div class="muted">Tap to enter</div></div></div>
+      <div class="item" onclick="openNote('Primary Objective')"><span class="ic"></span><div><h2>Primary Objective</h2><div class="muted">Tap to enter</div></div></div>
+      <div class="item" onclick="openNote('Secondary Objectives')"><span class="ic"></span><div><h2>Secondary Objectives</h2><div class="muted">Tap to enter</div></div></div>
+      <div class="item" onclick="openNote('Study Duration')"><span class="ic"></span><div><h2>Study Duration</h2><div class="muted">Tap to enter</div></div></div>
+      <div class="item" onclick="openNote('Key Endpoints (Optional)')"><span class="ic"></span><div><h2>Key Endpoints (Optional)</h2><div class="muted">Tap to enter</div></div></div>
+    </div>
+    <div class="actions">
+      <a class="back" href="#" onclick="go(1)">&lsaquo; Back to Study Overview</a>
+      <button class="btn btn-primary" type="button" onclick="go(3)">Next: CRO Service Scope &rsaquo;</button>
+    </div>
+  </section>
+
+  <!-- STEP 3: CRO Service Scope -->
+  <section id="step3" class="hidden">
+    <h1>Step 3 of 5 — CRO Service Scope</h1>
+    <div id="scopeTiles" class="tiles"></div>
+    <div class="hint" style="margin-top:10px">Select all functional areas to include in your RFP.</div>
+    <div class="actions">
+      <a class="back" href="#" onclick="go(2)">&lsaquo; Back</a>
+      <button class="btn btn-primary" type="button" onclick="go(4)">Next: Timeline & Responsibility &rsaquo;</button>
+    </div>
+  </section>
+
+  <!-- STEP 4: Project Estimated Timeline -->
+  <section id="step4" class="hidden">
+    <h1>Step 4 of 5 — Project Estimated Timeline</h1>
+    <div class="grid full">
+      <div class="full">
+        <label>Protocol Finalization Date</label>
+        <input class="input" name="protocolDate" placeholder="DD/MM/YYYY">
+      </div>
+      <div class="full">
+        <label>First Patient Enrolled Date</label>
+        <input class="input" name="fpeDate" placeholder="DD/MM/YYYY">
+      </div>
+      <div class="full">
+        <label>Database Lock Date</label>
+        <input class="input" name="dblDate" placeholder="DD/MM/YYYY">
+      </div>
+      <div class="full">
+        <label>CSR Finalization Date</label>
+        <input class="input" name="csrDate" placeholder="DD/MM/YYYY">
+      </div>
+      <div class="grid full">
+        <div>
+          <label>Q&A Start Date</label>
+          <input class="input" name="qaStart" placeholder="DD/MM/YYYY">
+        </div>
+        <div>
+          <label>Q&A End Date</label>
+          <input class="input" name="qaEnd" placeholder="DD/MM/YYYY">
+        </div>
+      </div>
+      <div class="full">
+        <label>Enrollment Duration (weeks)</label>
+        <input class="input" name="enrollWeeks" type="number" inputmode="numeric" placeholder="">
+      </div>
+    </div>
+    <div class="actions">
+      <a class="back" href="#" onclick="go(3)">&lsaquo; Back</a>
+      <button class="btn btn-primary" type="button" onclick="go(5)">Next: Responsibility Assignment &rsaquo;</button>
+    </div>
+  </section>
+
+  <!-- STEP 5: Responsibility Assignment -->
+  <section id="step5" class="hidden">
+    <h1>Step 5 of 5 — Responsibility Assignment</h1>
+    <div id="respWrap"></div>
+    <div class="actions">
+      <a class="back" href="#" onclick="go(4)">&lsaquo; Back</a>
+      <button class="btn btn-primary" type="button" onclick="go(6)">Next: Review & Generate &rsaquo;</button>
+    </div>
+  </section>
+
+  <!-- STEP 6: Generate -->
+  <section id="step6" class="hidden">
+    <div class="center">
+      <div class="big">🎉 Congratulations</div>
+      <div class="sub">Your RFP is ready to generate!</div>
+      <div class="card" style="padding:24px">
+        <div class="grid">
+          <div class="full">
+            <label>Sponsor Name</label>
+            <input class="input" id="genSponsor" placeholder="">
+          </div>
+          <div class="full">
+            <label>Contact Person</label>
+            <input class="input" id="genContact" placeholder="">
+          </div>
+          <div class="full">
+            <label>Email</label>
+            <input class="input" id="genEmail" placeholder="">
+          </div>
+        </div>
+        <div class="btns">
+          <button class="btn btn-outline" type="button" onclick="previewRfp()">Preview</button>
+          <button class="btn btn-primary" type="button" onclick="chooseFormat()">Generate RFP</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- modal: step2 input + export choice -->
+<div id="modal" class="hidden" style="position:fixed;inset:0;background:rgba(5,9,15,.6);display:flex;align-items:center;justify-content:center">
+  <div class="card" style="width:min(680px,92vw);">
+    <h2 id="modalTitle">Input</h2>
+    <textarea id="modalText" class="input" rows="8" placeholder="Type here..."></textarea>
+    <div class="actions">
+      <span></span>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" onclick="hideModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveModal()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="export" class="hidden" style="position:fixed;inset:0;background:rgba(5,9,15,.6);display:flex;align-items:center;justify-content:center">
+  <div class="card" style="width:420px;text-align:center">
+    <h2>Export Format</h2>
+    <div class="btns">
+      <button class="btn btn-outline" onclick="doExport('PDF')">PDF</button>
+      <button class="btn btn-primary" onclick="doExport('Word')">Word</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- app state ---------- */
+const STATE = {
+  step:0,
+  designNotes:{}, // step2 text
+  scopeSel:new Set(), // step3 selected modules
+  resp: {}, // step5 {moduleKey: [{task, owner, notes}]}
+};
+
+const COUNTRIES = [
+  "Australia","Austria","Belgium","Brazil","Canada","China","Denmark","Finland","France","Germany",
+  "Hong Kong","India","Indonesia","Ireland","Israel","Italy","Japan","Korea, Republic of","Malaysia",
+  "Netherlands","New Zealand","Norway","Philippines","Poland","Portugal","Singapore","Spain",
+  "Sweden","Switzerland","Taiwan","Thailand","United Kingdom","United States","Vietnam"
+]; // 工程师可替换为完整 A–Z 列表
+
+const SCOPES = [
+  {key:"regulatory", name:"Regulatory Affairs", tasks:["Regulatory Submission","Ethics Submission","CTA/IND Prep","Authority Communication"]},
+  {key:"pm", name:"Project Management", tasks:["Planning & Oversight","Client Communication","Budget Tracking","Reporting"]},
+  {key:"feas", name:"Feasibility & Site Selection", tasks:["Site Feasibility","Site Selection","Site Contracts"]},
+  {key:"clinops", name:"Clinical Operations", tasks:["Site Initiation","Patient Recruitment","Monitoring Visits","Site Close-out"]},
+  {key:"dm", name:"Data Management", tasks:["EDC Design","Data Entry","Data Cleaning","Database Lock"]},
+  {key:"stats", name:"Data Statistics", tasks:["SAP","Analysis","TLFs"]},
+  {key:"pv", name:"Pharmacovigilance (PV)", tasks:["SAE","DSUR","Signal Detection"]},
+  {key:"medmon", name:"Medical Monitoring", tasks:["Safety Oversight","Clinical Data Review"]},
+  {key:"medw", name:"Medical Writing", tasks:["Protocol","CSR","IB Update"]},
+  {key:"central", name:"Central Lab / Logistics", tasks:["Sample Shipment","Lab Coordination"]},
+  {key:"imp", name:"Clinical Supplies / IMP", tasks:["Labeling","Distribution Tracking"]},
+  {key:"systems", name:"eTMF / IRT / EDC", tasks:["System Setup","Validation","Data Integrity"]},
+  {key:"ethics", name:"Ethics", tasks:["IRB Coordination","Submission Package"]},
+];
+
+const qs = sel => document.querySelector(sel);
+const byId = id => document.getElementById(id);
+
+function showStep(id){
+  document.querySelectorAll('section').forEach(s=>s.classList.add('hidden'));
+  byId(id).classList.remove('hidden');
+}
+function updateDots(idx){
+  document.querySelectorAll('[data-stepdot]').forEach((d,i)=>d.classList.toggle('on', i<=idx));
+}
+function go(step){
+  STATE.step=step; updateDots(step); showStep('step'+step);
+  if(step===1) initCountries();
+  if(step===3) renderScope();
+  if(step===5) renderResp();
+}
+
+/* ---------- Save Draft (demo) ---------- */
+function saveDraft(){
+  const data = JSON.stringify(STATE);
+  localStorage.setItem('trialverse_draft', data);
+  alert('Draft saved locally.');
+}
+
+/* ---------- step1 countries tag input ---------- */
+const countriesSet = new Set();
+function initCountries(){
+  const dl = byId('countryList'); dl.innerHTML='';
+  COUNTRIES.forEach(c=>{const o=document.createElement('option'); o.value=c; dl.appendChild(o);});
+  const input = byId('countryInput'); const wrap = byId('countryWrap');
+  input.onkeydown = (e)=>{
+    if(e.key==='Enter' || e.key===','){ e.preventDefault();
+      const val = input.value.replace(',','').trim(); if(!val) return;
+      if(!countriesSet.has(val)){ countriesSet.add(val);
+        const tag=document.createElement('span'); tag.className='tag'; tag.textContent=val+' ✕';
+        tag.onclick=()=>{countriesSet.delete(val); wrap.removeChild(tag);};
+        wrap.insertBefore(tag,input);
+      }
+      input.value='';
+    }
+  };
+}
+
+/* ---------- step2 modal edit ---------- */
+let modalKey=null;
+function openNote(key){
+  modalKey=key; byId('modalTitle').textContent=key; byId('modalText').value=STATE.designNotes[key]||''; byId('modal').classList.remove('hidden');
+}
+function hideModal(){byId('modal').classList.add('hidden')}
+function saveModal(){STATE.designNotes[modalKey]=byId('modalText').value.trim(); hideModal()}
+
+/* ---------- step3 scope tiles ---------- */
+function renderScope(){
+  const el=byId('scopeTiles'); el.innerHTML='';
+  SCOPES.forEach(s=>{
+    const div=document.createElement('div'); div.className='tile'+(STATE.scopeSel.has(s.key)?' sel':'');
+    div.innerHTML=`<h2 style="margin-bottom:4px">${s.name}</h2><div class="muted">${s.tasks.slice(0,3).join(', ')}</div>`;
+    div.onclick=()=>{ STATE.scopeSel.has(s.key)?STATE.scopeSel.delete(s.key):STATE.scopeSel.add(s.key); renderScope(); };
+    el.appendChild(div);
+  });
+}
+
+/* ---------- step5 responsibility assignment ---------- */
+function renderResp(){
+  const wrap=byId('respWrap'); wrap.innerHTML='';
+  SCOPES.forEach(sec=>{
+    const active = STATE.scopeSel.has(sec.key);
+    if(!STATE.resp[sec.key]){
+      STATE.resp[sec.key]=sec.tasks.map(t=>({task:t, owner: active?'CRO':'Sponsor', notes:''}));
+    }
+    const isHi = isSectionActive(sec.key);
+    const root=document.createElement('div'); root.className='sec'+(isHi?' hi':' dim');
+    root.dataset.key=sec.key;
+
+    root.innerHTML=`
+      <div class="sec-h" onclick="toggleOpen(this.parentElement)">
+        <div class="ttl"><span style="width:10px;height:10px;border-radius:2px;background:${isHi?'#49a3ff':'#5b6b86'}"></span>${sec.name}</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="muted">${summaryOwner(STATE.resp[sec.key])}</span>
+          <svg class="chev" width="14" height="14" viewBox="0 0 24 24"><path fill="#9fb0c8" d="M7 10l5 5 5-5z"/></svg>
+        </div>
+      </div>
+      <div class="openbody hidden">
+        <div class="card" style="padding:0">
+          <table>
+            <thead><tr><th>Task</th><th class="owner">Owner</th><th>Notes</th></tr></thead>
+            <tbody>
+              ${STATE.resp[sec.key].map((r,i)=>`
+                <tr>
+                  <td>${r.task}</td>
+                  <td class="owner">
+                    <select onchange="setOwner('${sec.key}',${i},this.value)">
+                      <option ${r.owner==='Sponsor'?'selected':''}>Sponsor</option>
+                      <option ${r.owner==='CRO'?'selected':''}>CRO</option>
+                      <option ${r.owner==='Shared'?'selected':''}>Shared</option>
+                    </select>
+                  </td>
+                  <td><input class="input" value="${r.notes||''}" oninput="setNote('${sec.key}',${i},this.value)" placeholder="Optional"></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    wrap.appendChild(root);
+  });
+}
+
+function summaryOwner(rows){
+  const set=new Set(rows.map(r=>r.owner));
+  return set.size===1?[...set][0]:'Mixed';
+}
+function toggleOpen(sec){
+  sec.classList.toggle('open');
+  sec.querySelector('.openbody').classList.toggle('hidden');
+}
+function setOwner(key, idx, val){
+  STATE.resp[key][idx].owner=val;
+  // 任一条改为 CRO/Shared → 模块激活
+  const anyActive = STATE.resp[key].some(r=>r.owner!=='Sponsor');
+  if(anyActive) STATE.scopeSel.add(key);
+  renderResp();
+}
+function setNote(key, idx, val){ STATE.resp[key][idx].notes=val }
+function isSectionActive(key){
+  const any=STATE.resp[key]?.some?.(r=>r.owner!=='Sponsor');
+  return STATE.scopeSel.has(key) || any;
+}
+
+/* ---------- step6 preview/export ---------- */
+function previewRfp(){
+  alert('Preview would render a compiled HTML/PDF view.\n(工程实现：汇总 STATE + 模板渲染)');
+}
+function chooseFormat(){ byId('export').classList.remove('hidden') }
+function doExport(fmt){
+  byId('export').classList.add('hidden');
+  alert('Exporting '+fmt+'...\n(工程实现：对接 PDF/Word 生成)');
+}
+
+/* init */
+go(0);
+
+/* preload countries datalist once step1 shown */
+</script>
+</body>
 </html>
